@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # 🔐 Snowflake connection secrets
       SNOWFLAKE_CONNECTIONS_ADVANCED_DATA_ENGINEERING_SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_CONNECTIONS_ADVANCED_DATA_ENGINEERING_SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
       SNOWFLAKE_CONNECTIONS_ADVANCED_DATA_ENGINEERING_SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
@@ -22,14 +21,11 @@ jobs:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      # 🎯 Determine deployment environment (staging/prod)
+      # 🎯 Determine deployment environment
       - name: ⚙️ Set deployment environment
         id: set_env
         run: |
-          echo "🔍 Determining target environment..."
-          
           TARGET_BRANCH="${GITHUB_REF#refs/heads/}"
-
           if [[ $TARGET_BRANCH == "staging" ]]; then
             echo "DEPLOY_ENV=STAGING" >> $GITHUB_ENV
             echo "🚧 Environment set to *staging*"
@@ -47,6 +43,20 @@ jobs:
         with:
           cli-version: "latest"
           default-config-file-path: "config.toml"
+
+      # 🔧 Ensure warehouse exists and is running
+      - name: 🏗 Ensure WORKING_WH warehouse exists
+        run: |
+          echo "🔍 Checking/creating WORKING_WH warehouse..."
+          snow sql -q "
+          CREATE WAREHOUSE IF NOT EXISTS WORKING_WH
+            WAREHOUSE_SIZE = SMALL
+            AUTO_SUSPEND = 300
+            AUTO_RESUME = TRUE
+            INITIALLY_SUSPENDED = TRUE;
+          "
+          echo "⚡ Resuming warehouse..."
+          snow sql -q "ALTER WAREHOUSE WORKING_WH RESUME;"
 
       # 🔄 Fetch latest Git changes from Snowflake Git repository
       - name: 🔄 Fetch latest changes from Snowflake Git repo
