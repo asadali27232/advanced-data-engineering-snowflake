@@ -27,7 +27,7 @@ CREATE OR ALTER SCHEMA {{env}}_tasty_bytes.analytics;
 
 
 -- create warehouse for ingestion
-CREATE OR REPLACE WAREHOUSE WORKING_WH
+CREATE WAREHOUSE IF NOT EXISTS WORKING_WH
    WAREHOUSE_SIZE = 'xlarge'
    WAREHOUSE_TYPE = 'standard'
    AUTO_SUSPEND = 60
