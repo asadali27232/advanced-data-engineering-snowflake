@@ -1,0 +1,77 @@
+name: 🚀 Deploy Data Pipeline
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+
+jobs:
+  deploy_data_pipelin
+    runs-on: ubuntu-latest
+
+    env:
+      # 🔐 Snowflake connection secrets
+      SNOWFLAKE_CONNECTIONS_ADVANCED_DATA_ENGINEERING_SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_CONNECTIONS_ADVANCED_DATA_ENGINEERING_SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_CONNECTIONS_ADVANCED_DATA_ENGINEERING_SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+
+    steps:
+
+      # 📥 Checkout repository
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      # 🎯 Determine deployment environment (staging/prod)
+      - name: ⚙️ Set deployment environment
+        id: set_env
+        run: |
+          echo "🔍 Determining target environment..."
+          
+          TARGET_BRANCH="${GITHUB_REF#refs/heads/}"
+
+          if [[ $TARGET_BRANCH == "staging" ]]; then
+            echo "DEPLOY_ENV=STAGING" >> $GITHUB_ENV
+            echo "🚧 Environment set to *staging*"
+          elif [[ $TARGET_BRANCH == "main" ]]; then
+            echo "DEPLOY_ENV=PROD" >> $GITHUB_ENV
+            echo "🏁 Environment set to *production*"
+          else
+            echo "❌ Unexpected branch: $TARGET_BRANCH"
+            exit 1
+          fi
+
+      # 🧰 Install Snowflake CLI
+      - name: 🧰 Install Snowflake CLI
+        uses: snowflakedb/snowflake-cli-action@v1.5
+        with:
+          cli-version: "latest"
+          default-config-file-path: "config.toml"
+
+      # 🔄 Fetch latest Git changes from Snowflake Git repository
+      - name: 🔄 Fetch latest changes from Snowflake Git repo
+        run: |
+          echo "📡 Fetching updates from Snowflake Git repo..."
+          snow git fetch course_repo.public.advanced_data_engineering_snowflake
+
+      # 🚀 Deploy templated SQL pipelines into Snowflake
+      - name: 🚀 Deploy templates to Snowflake
+        run: |
+          echo "📝 Using Git branch: ${GITHUB_REF#refs/heads/}"
+          echo "🌍 Deploying to env: ${DEPLOY_ENV}"
+
+          echo "📦 Deploying DATA templates..."
+          snow git execute @advanced_data_engineering_snowflake/branches/${GITHUB_REF#refs/heads/}/module-1/hamburg_weather/pipeline/data/ \
+            -D "env='${DEPLOY_ENV}'" \
+            --database=COURSE_REPO \
+            --schema=PUBLIC \
+            --warehouse=WORKING_WH
+
+          echo "🏗 Deploying OBJECT templates..."
+          snow git execute @advanced_data_engineering_snowflake/branches/${GITHUB_REF#refs/heads/}/module-1/hamburg_weather/pipeline/objects/ \
+            -D "env='${DEPLOY_ENV}'" \
+            --database=COURSE_REPO \
+            --schema=PUBLIC \
+            --warehouse=WORKING_WH
+
+          echo "✅ Deployment completed successfully!"

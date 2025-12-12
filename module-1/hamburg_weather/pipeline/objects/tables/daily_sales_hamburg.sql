@@ -1,5 +1,5 @@
 CREATE OR REPLACE DYNAMIC TABLE {{env}}_tasty_bytes.raw_pos.daily_sales_hamburg
-WAREHOUSE = 'COMPUTE_WH'
+WAREHOUSE = 'WORKING_WH'
 TARGET_LAG = '1 minute'
 AS
 SELECT
