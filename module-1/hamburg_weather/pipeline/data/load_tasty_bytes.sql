@@ -299,6 +299,7 @@ FROM @{{env}}_tasty_bytes.public.s3load/raw_pos/country/;
 
 
 -- franchise table load
+
 COPY INTO {{env}}_tasty_bytes.raw_pos.franchise
 FROM @{{env}}_tasty_bytes.public.s3load/raw_pos/franchise/;
 
