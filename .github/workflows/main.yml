@@ -56,7 +56,7 @@ jobs:
             INITIALLY_SUSPENDED = TRUE;
           "
           echo "⚡ Resuming warehouse..."
-          snow sql -q "ALTER WAREHOUSE WORKING_WH RESUME;"
+          snow sql -q "ALTER WAREHOUSE WORKING_WH THEN RESUME IF SUSPENDED;"
 
       # 🔄 Fetch latest Git changes from Snowflake Git repository
       - name: 🔄 Fetch latest changes from Snowflake Git repo
