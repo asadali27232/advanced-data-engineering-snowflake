@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  deploy_data_pipelin
+  deploy_data_pipelin:
     runs-on: ubuntu-latest
 
     env:
