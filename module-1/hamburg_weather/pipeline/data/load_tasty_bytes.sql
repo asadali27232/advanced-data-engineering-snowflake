@@ -27,7 +27,7 @@ CREATE OR ALTER SCHEMA {{env}}_tasty_bytes.analytics;
 
 
 -- create warehouse for ingestion
-CREATE OR REPLACE WAREHOUSE demo_build_wh
+CREATE OR REPLACE WAREHOUSE WORKING_WH
    WAREHOUSE_SIZE = 'xlarge'
    WAREHOUSE_TYPE = 'standard'
    AUTO_SUSPEND = 60
@@ -290,7 +290,7 @@ raw zone table load
 --*/
 
 
-USE WAREHOUSE demo_build_wh;
+USE WAREHOUSE WORKING_WH;
 
 
 -- country table load
