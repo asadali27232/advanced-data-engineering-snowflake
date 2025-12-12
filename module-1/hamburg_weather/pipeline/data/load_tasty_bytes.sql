@@ -303,6 +303,7 @@ COPY INTO {{env}}_tasty_bytes.raw_pos.franchise
 FROM @{{env}}_tasty_bytes.public.s3load/raw_pos/franchise/;
 
 
+
 -- location table load
 COPY INTO {{env}}_tasty_bytes.raw_pos.location
 FROM @{{env}}_tasty_bytes.public.s3load/raw_pos/location/;
