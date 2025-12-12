@@ -1,20 +1,13 @@
 name: 🚀 Deploy Data Pipeline
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - staging
-      - main
   push:
     branches:
       - staging
       - main
 
 jobs:
-  deploy_data_environment:
-    # Run only when PR is merged or direct push
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+  deploy_data_pipelin
     runs-on: ubuntu-latest
 
     env:
@@ -35,13 +28,13 @@ jobs:
         run: |
           echo "🔍 Determining target environment..."
           
-          TARGET_BRANCH="${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}"
+          TARGET_BRANCH="${GITHUB_REF#refs/heads/}"
 
           if [[ $TARGET_BRANCH == "staging" ]]; then
-            echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=STAGING" >> $GITHUB_ENV
             echo "🚧 Environment set to *staging*"
           elif [[ $TARGET_BRANCH == "main" ]]; then
-            echo "DEPLOY_ENV=prod" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=PROD" >> $GITHUB_ENV
             echo "🏁 Environment set to *production*"
           else
             echo "❌ Unexpected branch: $TARGET_BRANCH"
@@ -64,10 +57,18 @@ jobs:
       # 🚀 Deploy templated SQL pipelines into Snowflake
       - name: 🚀 Deploy templates to Snowflake
         run: |
-          echo "📝 Using Git branch: ${GITHUB_REF_NAME}"
+          echo "📝 Using Git branch: ${GITHUB_REF#refs/heads/}"
           echo "🌍 Deploying to env: ${DEPLOY_ENV}"
 
-          snow git execute @advanced_data_engineering_snowflake/branches/${GITHUB_REF_NAME}/module-1/hamburg_weather/pipeline/data/ \
+          echo "📦 Deploying DATA templates..."
+          snow git execute @advanced_data_engineering_snowflake/branches/${GITHUB_REF#refs/heads/}/module-1/hamburg_weather/pipeline/data/ \
+            -D "env='${DEPLOY_ENV}'" \
+            --database=COURSE_REPO \
+            --schema=PUBLIC \
+            --warehouse=WORKING_WH
+
+          echo "🏗 Deploying OBJECT templates..."
+          snow git execute @advanced_data_engineering_snowflake/branches/${GITHUB_REF#refs/heads/}/module-1/hamburg_weather/pipeline/objects/ \
             -D "env='${DEPLOY_ENV}'" \
             --database=COURSE_REPO \
             --schema=PUBLIC \
